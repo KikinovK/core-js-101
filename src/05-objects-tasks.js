@@ -119,32 +119,114 @@ function fromJSON(proto, json) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  elementValue: '',
+  idValue: '',
+  classValues: [],
+  attrValues: [],
+  pseudoClassValues: [],
+  pseudoElementValue: '',
+  order: 0,
+
+  element(value) {
+    const curentOrder = 1;
+    if (this.elementValue) throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    if (this.order > curentOrder) throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    this.elementValue = value;
+    this.order = curentOrder;
+    const selector = { ...this };
+    this.elementValue = '';
+    this.order = 0;
+    return selector;
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    const curentOrder = 2;
+    if (this.idValue) throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    if (this.order > curentOrder) throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    this.idValue = `#${value}`;
+    this.order = curentOrder;
+    const selector = { ...this };
+    this.idValue = '';
+    this.order = 0;
+    return selector;
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    const curentOrder = 3;
+    if (this.order > curentOrder) throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    this.classValues += `.${value}`;
+    this.order = curentOrder;
+    const selector = { ...this };
+    this.classValues = '';
+    this.order = 0;
+    return selector;
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    const curentOrder = 4;
+    if (this.order > curentOrder) throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    this.attrValues += `[${value}]`;
+    this.order = curentOrder;
+    const selector = { ...this };
+    this.attrValues = '';
+    this.order = 0;
+    return selector;
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    const curentOrder = 5;
+    if (this.order > curentOrder) throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    this.pseudoClassValues += `:${value}`;
+    this.order = curentOrder;
+    const selector = { ...this };
+    this.pseudoClassValues = '';
+    this.order = 0;
+    return selector;
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    const curentOrder = 6;
+    if (this.order > curentOrder) throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    if (this.pseudoElementValue) throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    this.pseudoElementValue = `::${value}`;
+    this.order = curentOrder;
+    const selector = { ...this };
+    this.pseudoElementValue = '';
+    this.order = 0;
+    return selector;
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    const sel1 = selector1.stringify();
+    const sel2 = selector2.stringify();
+    this.combineValue = `${sel1} ${combinator} ${sel2}`;
+    const selector = { ...this };
+    this.combineValue = '';
+    return selector;
+  },
+
+  stringify() {
+    let value = '';
+    if (!this.combineValue) {
+      value += this.elementValue;
+      value += this.idValue;
+      value += this.classValues;
+      value += this.attrValues;
+      value += this.pseudoClassValues;
+      value += this.pseudoElementValue;
+    } else {
+      value = this.combineValue;
+      this.combineValue = '';
+    }
+
+    this.elementValue = '';
+    this.idValue = '';
+    this.classValues = [];
+    this.attrValues = [];
+    this.pseudoClassValues = [];
+    this.pseudoElementValue = '';
+
+    return value;
   },
 };
 
